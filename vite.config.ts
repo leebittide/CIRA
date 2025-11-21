@@ -20,6 +20,12 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        report: path.resolve(__dirname, 'report.html'),
+      },
+    },
   },
   server: {
     port: 3000,
