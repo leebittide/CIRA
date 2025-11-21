@@ -253,9 +253,9 @@ const FormEditor = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
+    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md">
       <h3 className="text-xl font-bold mb-4">Report Issue Form Editor</h3>
-      <div className="flex items-center border-b border-gray-200">
+      <div className="flex items-center border-b border-gray-200 overflow-x-auto whitespace-nowrap">
         {editedFormFields.map(field => (
           <button 
             key={field.id} 
@@ -287,27 +287,29 @@ const FormEditor = () => {
       </div>
       <div className="py-6">
         {editingField && (
-          <div className="w-full space-y-4 flex-grow">
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
-              <input
-                  type="text"
-                  value={editingField.label}
-                  onChange={e => setEditingField({ ...editingField, label: e.target.value, name: e.target.value.toLowerCase().replace(/\s/g, '-') })}
-                  className="w-full p-2 border rounded"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
-                  value={editingField.type}
-                  onChange={e => setEditingField({ ...editingField, type: e.target.value, optionSets: e.target.value === 'select' ? editingField.optionSets || [{options: []}] : undefined })}
-                  className="w-full p-2 border rounded"
-              >
-                  <option value="text">Text</option>
-                  <option value="select">Dropdown</option>
-                  <option value="textarea">Text Area</option>
-              </select>
+          <div className="w-full space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                <input
+                    type="text"
+                    value={editingField.label}
+                    onChange={e => setEditingField({ ...editingField, label: e.target.value, name: e.target.value.toLowerCase().replace(/\s/g, '-') })}
+                    className="w-full p-2 border rounded"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                    value={editingField.type}
+                    onChange={e => setEditingField({ ...editingField, type: e.target.value, optionSets: e.target.value === 'select' ? editingField.optionSets || [{options: []}] : undefined })}
+                    className="w-full p-2 border rounded"
+                >
+                    <option value="text">Text</option>
+                    <option value="select">Dropdown</option>
+                    <option value="textarea">Text Area</option>
+                </select>
+              </div>
           </div>
 
           {editingField.type === 'select' && (
@@ -316,23 +318,23 @@ const FormEditor = () => {
                 {editingField.optionSets?.map((set, setIndex) => (
                     <div key={setIndex} className="p-3 border rounded-md bg-gray-100">
                         {set.condition ? (
-                            <div className="flex items-center gap-2 mb-3 text-sm">
-                                Display if&nbsp;
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-3 text-sm">
+                                <span className="flex-shrink-0">Display if</span>
                                 <select
                                     value={set.condition.field}
                                     onChange={e => handleConditionFieldChange(setIndex, e.target.value)}
-                                    className="p-2 border rounded text-xs"
+                                    className="p-2 border rounded text-xs w-full sm:w-auto"
                                 >
                                     <option value="">Select Field...</option>
                                     {dropdownFields.filter(f => f.id !== editingField.id).map(f => (
                                         <option key={f.id} value={f.id}>{f.label}</option>
                                     ))}
                                 </select>
-                                &nbsp;is&nbsp;
+                                <span className="flex-shrink-0">is</span>
                                 <select
                                     value={set.condition.value}
                                     onChange={e => handleConditionValueChange(setIndex, e.target.value)}
-                                    className="p-2 border rounded text-xs"
+                                    className="p-2 border rounded text-xs w-full sm:w-auto"
                                     disabled={!set.condition.field}
                                 >
                                     <option value="">Select Value...</option>
@@ -341,7 +343,7 @@ const FormEditor = () => {
                                         <option key={opt} value={opt}>{opt}</option>
                                     ))}
                                 </select>
-                                <Button variant="ghost" size="icon" onClick={() => removeOptionSet(setIndex)}>
+                                <Button variant="ghost" size="icon" onClick={() => removeOptionSet(setIndex)} className="ml-auto">
                                     <Trash2 className="h-4 w-4 text-red-500" />
                                 </Button>
                             </div>
@@ -380,12 +382,12 @@ const FormEditor = () => {
 
           <div>
               <h5 className="font-semibold mt-4 mb-2">Field Visibility</h5>
-              <div className="flex items-center gap-2 text-sm">
-                  Show this field if &nbsp;
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
+                  <span className="flex-shrink-0">Show this field if</span>
                   <select
                       value={editingField.conditional?.field || ''}
                       onChange={e => setEditingField({ ...editingField, conditional: { ...(editingField.conditional || { value: '' }), field: e.target.value, value: '' } })}
-                      className="p-2 border rounded"
+                      className="p-2 border rounded w-full sm:w-auto"
                   >
                       <option value="">Always show</option>
                       {dropdownFields.filter(f => f.id !== editingField.id).map(f => (
@@ -394,11 +396,11 @@ const FormEditor = () => {
                   </select>
                   {editingField.conditional?.field && (
                     <>
-                      &nbsp;is&nbsp;
+                      <span className="flex-shrink-0">is</span>
                       <select
                           value={editingField.conditional.value}
                           onChange={e => setEditingField({ ...editingField, conditional: { ...(editingField.conditional!), value: e.target.value } })}
-                          className="p-2 border rounded"
+                          className="p-2 border rounded w-full sm:w-auto"
                       >
                           <option value="">Select Value...</option>
                           <option value="any">Any value</option>
@@ -410,11 +412,9 @@ const FormEditor = () => {
                   )}
               </div>
           </div>
-          <div className="flex items-center justify-between p-3">
-            <div>
+          <div className="flex flex-wrap items-center justify-between p-3">
             <Button onClick={() => handleDeleteField(editingField.id)} size="sm" variant="destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</Button>
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-end gap-2 mt-4 sm:mt-0">
                 <Button onClick={() => setEditingField(null)} variant="ghost">Cancel</Button>
                 <Button onClick={handleUpdateField}>Update Field</Button>
             </div>
@@ -476,12 +476,12 @@ const FormEditor = () => {
 
           <div className="mt-4">
               <h5 className="font-semibold mb-2">Field Visibility</h5>
-              <div className="flex items-center gap-2 text-sm">
-                  Show this field if &nbsp;
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
+                  <span className="flex-shrink-0">Show this field if</span>
                   <select
                       value={newField.conditional?.field || ''}
                       onChange={e => setNewField({ ...newField, conditional: { ...(newField.conditional || { value: '' }), field: e.target.value, value: '' } })}
-                      className="p-2 border rounded"
+                      className="p-2 border rounded w-full sm:w-auto"
                   >
                       <option value="">Always show</option>
                       {dropdownFields.map(f => (
@@ -490,11 +490,11 @@ const FormEditor = () => {
                   </select>
                   {newField.conditional?.field && (
                       <>
-                          &nbsp;is&nbsp;
+                          <span className="flex-shrink-0">is</span>
                           <select
                               value={newField.conditional.value}
                               onChange={e => setNewField({ ...newField, conditional: { ...(newField.conditional!), value: e.target.value } })}
-                              className="p-2 border rounded"
+                              className="p-2 border rounded w-full sm:w-auto"
                           >
                               <option value="">Select Value...</option>
                               <option value="any">Any value</option>
@@ -507,13 +507,12 @@ const FormEditor = () => {
               </div>
           </div>
           
-            <div className="flex items-center justify-between p-3">
-            <div>
-            </div>
-            <div className="mt-auto flex justify-end gap-4 pt-6">
-            <Button onClick={() => setShowAddField(false)} variant="outline" className="mt-4 ml-2">Cancel</Button>
-            <Button onClick={handleAddField} variant="default" className="mt-4">Add Field</Button>
-            </div>
+            <div className="flex flex-wrap items-center justify-between p-3">
+              <div></div>
+              <div className="flex justify-end gap-4 pt-6 mt-auto">
+                <Button onClick={() => setShowAddField(false)} variant="outline" className="mt-4 ml-2">Cancel</Button>
+                <Button onClick={handleAddField} variant="default" className="mt-4">Add Field</Button>
+              </div>
             </div>
         </div>
         )}
@@ -521,10 +520,10 @@ const FormEditor = () => {
       </div>
             
       {hasChanges && (
-        <div className="flex items-center justify-between p-3">
+        <div className="flex flex-wrap items-center justify-between p-3">
         <div>
         </div>
-        <div className="mt-auto flex justify-end gap-4 pt-6">
+        <div className="flex justify-end gap-4 pt-6 mt-auto">
         <Button onClick={handleDiscardChanges} variant="destructive">Discard Changes</Button>
         <Button onClick={handleSaveChanges} variant="secondary">Save Changes</Button>
         </div>
