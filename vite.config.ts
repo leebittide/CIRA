@@ -24,6 +24,7 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html'),
         report: path.resolve(__dirname, 'report.html'),
+        'form-editor': path.resolve(__dirname, 'form-editor.html'),
       },
     },
   },

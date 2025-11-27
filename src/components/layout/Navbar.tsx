@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { LogOut, User as UserIcon, AlertCircle } from 'lucide-react';
+import { LogOut, User as UserIcon, AlertCircle, Edit } from 'lucide-react';
 import { User } from '../../lib/mockData';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import UpdatedNavyBlueLogo from '../../assets/UpdatedNavyBlueLogo.png';
@@ -67,6 +67,18 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onLogoClick, onP
                 <AlertCircle className="w-4 h-4" />
                 <span className="hidden sm:inline">Report Issue</span>
               </motion.button>
+            )}
+             {/* Form Editor Button - only for admins */}
+            {user.role === 'admin' && (
+                <motion.button
+                    onClick={() => window.location.href = '/form-editor.html'}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#3942A7] text-white rounded-lg hover:bg-[#3942A7]/90 transition-all"
+                >
+                    <Edit className="w-4 h-4" />
+                    <span className="sm:inline">Form Editor</span>
+                </motion.button>
             )}
             {/* Profile Section */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={onProfileClick}>

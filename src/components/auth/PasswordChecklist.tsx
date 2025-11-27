@@ -3,10 +3,11 @@ import { Check, X } from 'lucide-react';
 
 interface PasswordChecklistProps {
   password: string;
+  confirmPassword?: string;
   isSubmitted: boolean;
 }
 
-export const PasswordChecklist: React.FC<PasswordChecklistProps> = ({ password, isSubmitted }) => {
+export const PasswordChecklist: React.FC<PasswordChecklistProps> = ({ password, confirmPassword, isSubmitted }) => {
   const checks = {
     length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
@@ -14,6 +15,19 @@ export const PasswordChecklist: React.FC<PasswordChecklistProps> = ({ password, 
     digit: /\d/.test(password),
     symbol: /[@$!%*?&]/.test(password),
   };
+
+  const allChecksPassed = Object.values(checks).every(Boolean);
+
+  if (allChecksPassed && password && confirmPassword && password === confirmPassword) {
+    return (
+      <div className="mt-2 space-y-1">
+        <div className="flex items-center text-sm text-[#1DB954]">
+          <Check className="w-4 h-4 mr-2" />
+          <span>Password Matched!</span>
+        </div>
+      </div>
+    );
+  }
 
   const checklistItems = [
     { key: 'length', text: 'At least 8 characters' },
@@ -25,8 +39,7 @@ export const PasswordChecklist: React.FC<PasswordChecklistProps> = ({ password, 
 
   const getColor = (hasPassed: boolean) => {
     if (hasPassed) return 'text-[#1DB954]';
-    if (isSubmitted) return 'text-[#FF4D4F]';
-    return 'text-[#7A7A7A]';
+    return 'text-[#FF4D4F]';
   };
 
   return (
@@ -37,10 +50,8 @@ export const PasswordChecklist: React.FC<PasswordChecklistProps> = ({ password, 
           <div key={item.key} className={`flex items-center text-sm ${getColor(hasPassed)}`}>
             {hasPassed ? (
               <Check className="w-4 h-4 mr-2" />
-            ) : isSubmitted ? (
-              <X className="w-4 h-4 mr-2" />
             ) : (
-              <div className="w-4 h-4 mr-2" />
+              <X className="w-4 h-4 mr-2" />
             )}
             <span>{item.text}</span>
           </div>
