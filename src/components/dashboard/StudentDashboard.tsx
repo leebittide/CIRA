@@ -34,7 +34,7 @@ interface StudentDashboardProps {
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({ logoClickTime, profileClickTime }) => {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [formFields, setFormFields] = useState<FormField[]>([]);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'report' | 'settings'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'settings'>('tickets');
   const [filter, setFilter] = useState<'all' | 'submitted' | 'requested' | 'in-progress' | 'pending-resolution' | 'resolved' | 'pending-confirmation'>('all');
   const [searchField, setSearchField] = useState('all');
   const [searchValue, setSearchValue] = useState('');
@@ -282,8 +282,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ logoClickTim
             )}
           </motion.div>
         )}
-
-        {/* Report tab removed */}
 
         {activeTab === 'settings' && (
           <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
