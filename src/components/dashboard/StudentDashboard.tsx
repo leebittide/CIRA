@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Clock, CheckCircle, AlertCircle, FileText, Settings as SettingsIcon, Trash2 } from 'lucide-react';
+import { Ticket, Clock, CheckCircle, AlertCircle, FileText, Settings as SettingsIcon } from 'lucide-react';
 import { db, auth } from '../../lib/firebase';
-import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { TicketForm } from '../tickets/TicketForm';
 import { SettingsPage } from '../settings/SettingsPage';
 import { Button } from '../ui/button';
@@ -34,7 +34,7 @@ interface StudentDashboardProps {
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({ logoClickTime, profileClickTime }) => {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [formFields, setFormFields] = useState<FormField[]>([]);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'report' | 'settings'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'settings'>('tickets');
   const [filter, setFilter] = useState<'all' | 'submitted' | 'requested' | 'in-progress' | 'pending-resolution' | 'resolved' | 'pending-confirmation'>('all');
   const [searchField, setSearchField] = useState('all');
   const [searchValue, setSearchValue] = useState('');
@@ -85,17 +85,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ logoClickTim
       showToast('Resolution confirmed and sent to Class Rep for final review', 'success');
     } catch (error) {
       showToast('Failed to confirm ticket resolution', 'error');
-    }
-  };
-
-  const handleDeleteTicket = async (ticketId: string) => {
-    if (confirm('Are you sure you want to delete this ticket?')) {
-      try {
-        await deleteDoc(doc(db, 'tickets', ticketId));
-        showToast('Ticket deleted successfully', 'success');
-      } catch (error) {
-        showToast('Failed to delete ticket', 'error');
-      }
     }
   };
 
@@ -283,9 +272,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ logoClickTim
                             {ticket.status === 'pending-confirmation' && (
                               <Button variant="success" disabled>Pending Resolution</Button>
                             )}
-                            {ticket.status === 'resolved' && (
-                              <Button onClick={() => handleDeleteTicket(ticket.id)} variant="destructive"><Trash2 className="w-4 h-4 mr-2"/>Delete</Button>
-                            )}
                           </div>
                         </td>
                       </tr>
@@ -296,8 +282,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ logoClickTim
             )}
           </motion.div>
         )}
-
-        {/* Report tab removed */}
 
         {activeTab === 'settings' && (
           <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>

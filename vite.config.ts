@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve('src'),
     },
   },
   build: {
@@ -22,13 +22,15 @@ export default defineConfig({
     },
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
-        report: path.resolve(__dirname, 'report.html'),
+        main: 'index.html',
+        report: 'report.html',
+        'form-editor': 'form-editor.html',
       },
     },
   },
   server: {
-    port: 3000,
+    host: '0.0.0.0',
+    port: 3001,
     open: true,
   },
 });

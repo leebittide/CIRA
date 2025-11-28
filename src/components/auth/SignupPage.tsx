@@ -399,7 +399,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToLogin, onSig
                   {errors.confirmPassword && <p className="text-[#FF4D4F] text-sm mt-1">{errors.confirmPassword}</p>}
                 </div>
               </div>
-              {(isPasswordFocused || formData.password) && <PasswordChecklist password={formData.password} isSubmitted={isSubmitted} />}
+              {(isPasswordFocused || formData.password) && <PasswordChecklist password={formData.password} confirmPassword={formData.confirmPassword} isSubmitted={isSubmitted} />}
               <motion.button
                 type="submit"
                 disabled={isLoading}

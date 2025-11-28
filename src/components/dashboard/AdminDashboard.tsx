@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, onSnapshot, query, doc, deleteDoc, updateDoc, writeBatch, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, doc, updateDoc, writeBatch, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useToast } from '../ui/toast-container';
 import { SettingsPage } from '../settings/SettingsPage';
 import { UserManagement } from './UserManagement';
-import FormEditor from './FormEditor';
 import { Button } from '../ui/button';
 import { Ticket, Clock, CheckCircle, AlertCircle, FileText, ClipboardList, Trash2, XCircle, Settings as SettingsIcon, PlayCircle, Users, Check, X, Pencil, Edit } from 'lucide-react';
 
@@ -34,8 +33,8 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, profileClickTime }) => {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [formFields, setFormFields] = useState<FormField[]>([]);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'settings' | 'user-management' | 'form-editor'>('tickets');
-  const [reviewFilter, setReviewFilter] = useState<'all' | 'submitted' | 'requested' | 'in-progress' | 'pending-resolution' | 'resolved' | 'rejected'>('all');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'settings' | 'user-management'>('tickets');
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'requested' | 'in-progress' | 'pending-resolution' | 'resolved' | 'rejected'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchField, setSearchField] = useState('all');
   const [searchValue, setSearchValue] = useState('');
@@ -63,7 +62,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
     const q = query(collection(db, 'tickets'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const ticketsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TicketType));
-      setTickets(ticketsData);
+      const filteredTickets = ticketsData.filter(ticket => ticket.status !== 'submitted');
+      setTickets(filteredTickets);
     });
 
     return () => unsubscribe();
@@ -80,38 +80,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
     });
     return () => unsubscribe();
   }, []);
-
-  const handleDeleteTicket = async (ticketId: string) => {
-    if (confirm('Are you sure you want to delete this ticket?')) {
-      try {
-        await deleteDoc(doc(db, 'tickets', ticketId));
-        showToast('Ticket deleted successfully', 'success');
-      } catch (error) {
-        showToast('Failed to delete ticket', 'error');
-      }
-    }
-  };
-
-  const handleDeleteAllTickets = async (status: 'resolved') => {
-    const ticketsToDelete = tickets.filter(t => t.status === status);
-    if (ticketsToDelete.length === 0) {
-      showToast(`No ${status} tickets to delete.`, 'info');
-      return;
-    }
-
-    if (confirm(`Are you sure you want to delete all ${status} tickets?`)) {
-      try {
-        const batch = writeBatch(db);
-        ticketsToDelete.forEach(ticket => {
-          batch.delete(doc(db, 'tickets', ticket.id));
-        });
-        await batch.commit();
-        showToast(`All ${status} tickets deleted successfully`, 'success');
-      } catch (error) {
-        showToast(`Failed to delete all ${status} tickets`, 'error');
-      }
-    }
-  };
 
   const handleStatusUpdate = async (ticketId: string, status: TicketType['status'], note?: string) => {
     try {
@@ -138,28 +106,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
       }
     } catch (error) {
       showToast('Failed to update ticket status', 'error');
-    }
-  };
-
-  const handleTicketReject = async (ticketId: string) => {
-    const note = rejectionNote[ticketId];
-    if (!note || note.trim() === '') {
-      showToast('Please provide a reason for rejecting the ticket.', 'error');
-      return;
-    }
-
-    try {
-      const ticketRef = doc(db, 'tickets', ticketId);
-      await updateDoc(ticketRef, { status: 'rejected', rejectionNote: note });
-      showToast('Ticket rejected', 'info');
-      setRejectionNote(prev => {
-        const updated = { ...prev };
-        delete updated[ticketId];
-        return updated;
-      });
-      setShowRejectionNote(prev => ({ ...prev, [ticketId]: false }));
-    } catch (error) {
-      showToast('Failed to reject ticket', 'error');
     }
   };
 
@@ -196,14 +142,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
         return String(fieldValue).toLowerCase() === searchValue.toLowerCase();
     });
 
-  const submittedTickets = tickets.filter(t => t.status === 'submitted');
   const requestedTickets = tickets.filter(t => t.status === 'requested');
   const inProgressTickets = tickets.filter(t => t.status === 'in-progress');
   const pendingResolutionTickets = tickets.filter(t => t.status === 'pending-resolution');
   const resolvedTickets = tickets.filter(t => t.status === 'resolved');
 
   const stats = [
-    { label: 'Submitted', count: submittedTickets.length, icon: Clock, color: 'bg-[#FFC107]', status: 'submitted' as const },
     { label: 'Requested', count: requestedTickets.length, icon: CheckCircle, color: 'bg-[#1DB954]', status: 'requested' as const },
     { label: 'In Progress', count: inProgressTickets.length, icon: AlertCircle, color: 'bg-[#3942A7]', status: 'in-progress' as const },
     { label: 'Pending Resolution', count: pendingResolutionTickets.length, icon: Clock, color: 'bg-[#FFC107]', status: 'pending-resolution' as const },
@@ -213,7 +157,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
   const tabs = [
     { id: 'tickets', label: 'Tickets', icon: ClipboardList },
     { id: 'user-management', label: 'User Management', icon: Users },
-    { id: 'form-editor', label: 'Form Editor', icon: Edit }, // Add the new tab
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
@@ -223,12 +166,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h1 className="text-[#1E1E1E] mb-2">Admin Dashboard</h1>
-        <p className="text-[#7A7A7A]">Manage tickets, users, and forms</p>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-[#1E1E1E] mb-2">Admin Dashboard</h1>
+          <p className="text-[#7A7A7A]">Manage tickets, users, and forms</p>
+        </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {stats.map((stat, index) => (
           <motion.div 
             key={stat.label} 
@@ -282,12 +227,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
                   All ({tickets.length})
                 </button>
                 <button 
-                  onClick={() => setReviewFilter('submitted')} 
-                  style={{backgroundColor: reviewFilter === 'submitted' ? '#FFC107' : 'white', color: reviewFilter === 'submitted' ? 'white' : '#7A7A7A'}}
-                  className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap cursor-pointer border border-gray-300`}>
-                  Submitted ({submittedTickets.length})
-                </button>
-                <button 
                   onClick={() => setReviewFilter('requested')} 
                   style={{backgroundColor: reviewFilter === 'requested' ? '#1DB954' : 'white', color: reviewFilter === 'requested' ? 'white' : '#7A7A7A'}}
                   className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap cursor-pointer border border-gray-300`}>
@@ -312,9 +251,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
                   Resolved ({resolvedTickets.length})
                 </button>
               </div>
-              {reviewFilter === 'resolved' && 
-                <button onClick={() => handleDeleteAllTickets('resolved')} className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-600 transition-colors"><Trash2 className="w-5 h-5" />Delete All Resolved</button>
-              }
             </div>
 
             <div className="mb-6 flex gap-4">
@@ -361,7 +297,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
                         <td className="px-6 py-4">
                             <div className="flex items-center justify-center">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${
-                                    ticket.status === 'submitted' ? 'bg-[#FFC107]' :
                                     ticket.status === 'requested' ? 'bg-[#1DB954]' :
                                     ticket.status === 'in-progress' ? 'bg-[#3942A7]' :
                                     ticket.status === 'pending-resolution' ? 'bg-[#FFC107]' :
@@ -374,24 +309,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col items-center gap-2">
-                            {ticket.status === 'submitted' && (
-                              <>
-                                {!showRejectionNote[ticket.id] ? (
-                                  <div className="flex gap-2">
-                                    <Button onClick={() => handleStatusUpdate(ticket.id, 'requested')} variant="success"><Check className="w-4 h-4 mr-2"/>Request</Button>
-                                    <Button onClick={() => setShowRejectionNote(prev => ({ ...prev, [ticket.id]: true }))} variant="destructive"><X className="w-4 h-4 mr-2"/>Reject</Button>
-                                  </div>
-                                ) : (
-                                  <div className="flex flex-col gap-2">
-                                    <textarea value={rejectionNote[ticket.id] || ''} onChange={(e) => setRejectionNote(prev => ({ ...prev, [ticket.id]: e.target.value }))} placeholder="Rejection Note..." className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#3942A7]" />
-                                    <div className="flex gap-2">
-                                      <Button onClick={() => handleTicketReject(ticket.id)} variant="destructive" className="flex-1">Confirm</Button>
-                                      <Button onClick={() => setShowRejectionNote(prev => ({ ...prev, [ticket.id]: false }))} variant="ghost" className="flex-1">Cancel</Button>
-                                    </div>
-                                  </div>
-                                )}
-                              </>
-                            )}
                             {ticket.status === 'requested' && <Button onClick={() => handleStatusUpdate(ticket.id, 'in-progress')} variant="default"><PlayCircle className="w-4 h-4 mr-2"/>Start Progress</Button>}
                             {ticket.status === 'in-progress' && (
                               <>
@@ -408,11 +325,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
                                 )}
                               </>
                             )}
-                            {(ticket.status === 'resolved' || ticket.status === 'rejected') && 
-                              <Button onClick={() => handleDeleteTicket(ticket.id)} variant="destructive">
-                                <Trash2 className="w-4 h-4 mr-2"/>Delete
-                              </Button>
-                            }
                           </div>
                         </td>
                       </tr>
@@ -427,12 +339,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ logoClickTime, p
         {activeTab === 'user-management' && (
           <motion.div key="user-management" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <UserManagement />
-          </motion.div>
-        )}
-
-        {activeTab === 'form-editor' && (
-          <motion.div key="form-editor" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <FormEditor />
           </motion.div>
         )}
 
